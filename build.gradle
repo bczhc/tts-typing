@@ -1,0 +1,29 @@
+plugins {
+    id 'scala'
+}
+
+group 'pers.zhc.tts'
+version '1.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.scala-lang:scala-library:2.13.7'
+}
+
+jar {
+    manifest {
+        attributes "Main-Class": "pers.zhc.tts.Main"
+    }
+}
+
+task fatJar(type: Jar) {
+    manifest.from jar.manifest
+    archiveClassifier.set "all"
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    with jar
+}
