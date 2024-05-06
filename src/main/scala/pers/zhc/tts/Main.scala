@@ -1,11 +1,15 @@
 package pers.zhc.tts
 
 import pers.zhc.tts.TTS.SpeakPriority
+
+import java.util.concurrent.Executors
 import javax.swing.event.{DocumentEvent, DocumentListener}
 import javax.swing.{JFrame, JTextArea, WindowConstants}
 
 object Main {
   def main(args: Array[String]): Unit = {
+    System.load("C:/bczhc/code/tts-typing/jni/build/libjni_lib.dll")
+
     val frame = new JFrame()
     frame.setTitle("TTS")
     frame.setSize(500, 300)
@@ -17,10 +21,18 @@ object Main {
     ta.setLineWrap(true)
     frame.add(ta)
 
+    val threadPool = Executors.newCachedThreadPool()
+
     val wordCombinator = new WordCombinator({ word =>
-      val tts = new TTS
-      tts.setPriority(SpeakPriority.Over)
-      tts.asyncSpeak(word)
+      threadPool.submit(new Runnable {
+        override def run(): Unit = {
+          val tts = new TTS
+          tts.setPriority(SpeakPriority.Over)
+          tts.setRate(2)
+          tts.speak(word)
+        }
+      })
+      println(s"Combined: $word")
     })
 
     ta.getDocument.addDocumentListener(new DocumentListener {
@@ -28,11 +40,12 @@ object Main {
         val text = ta.getText
         val changedText = text.substring(e.getOffset, e.getOffset + e.getLength)
         println(changedText)
-//        if (changedText.charAt(0).toShort > 0xff &&
-//          changedText.charAt(changedText.length - 1) > 0xff /* non-alphabetical */ ) {
-//          wordCombinator.commit(changedText)
-//          println(changedText)
-//        }
+        wordCombinator.commit(changedText)
+        //        if (changedText.charAt(0).toShort > 0xff &&
+        //          changedText.charAt(changedText.length - 1) > 0xff /* non-alphabetical */ ) {
+        //          wordCombinator.commit(changedText)
+        //          println(changedText)
+        //        }
       }
 
       override def removeUpdate(e: DocumentEvent): Unit = {
@@ -62,8 +75,8 @@ class WordCombinator(callback: WordCombinator.Callback) {
   }
 }
 
-object WordCombinator {
-  type Callback = String => Unit
+private object WordCombinator {
+  private type Callback = String => Unit
 
   private val INTERVAL = 50
 }
@@ -73,14 +86,12 @@ class ReusableTimer {
 
   def schedule(task: ReusableTimer.Task, delay: Long): Unit = {
     canceled = false
-    println(1)
     new Thread({ () =>
       Thread.sleep(delay)
       if (!canceled) {
         task()
       }
     }).start()
-    println(2)
   }
 
   def cancel(): Unit = {
@@ -89,5 +100,5 @@ class ReusableTimer {
 }
 
 object ReusableTimer {
-  type Task = () => Unit
+  private type Task = () => Unit
 }

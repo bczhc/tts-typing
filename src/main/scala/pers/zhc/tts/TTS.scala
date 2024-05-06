@@ -3,23 +3,19 @@ package pers.zhc.tts
 import pers.zhc.tts.TTS.SpeakPriority
 
 class TTS {
-  private val ttsAddr = JNI.TTS.create()
+  private val ttsAddr = JNI.create()
 
   def speak(text: String): Unit = {
     println(ttsAddr)
-    JNI.TTS.speak(ttsAddr, text)
-  }
-
-  def asyncSpeak(text: String): Unit ={
-    JNI.TTS.asyncSpeak(ttsAddr, text)
+    JNI.speak(ttsAddr, text)
   }
 
   override def finalize(): Unit = {
-    JNI.TTS.release(ttsAddr)
+    JNI.release(ttsAddr)
   }
 
   def setPriority(priority: SpeakPriority): Unit = {
-    JNI.TTS.setPriority(ttsAddr, priority.nativePriority)
+    JNI.setPriority(ttsAddr, priority.nativePriority)
   }
 
   /**
@@ -28,7 +24,7 @@ class TTS {
    * @param rate range: [-10, 10]
    */
   def setRate(rate: Int): Unit = {
-    JNI.TTS.setRate(ttsAddr, rate)
+    JNI.setRate(ttsAddr, rate)
   }
 }
 
@@ -49,5 +45,10 @@ object TTS {
     object Over extends SpeakPriority {
       override val nativePriority: Int = 2
     }
+  }
+
+  object Flags {
+    val SPF_DEFAULT = 0
+    val SPF_ASYNC = 1
   }
 }
