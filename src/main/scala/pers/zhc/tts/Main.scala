@@ -1,14 +1,23 @@
 package pers.zhc.tts
 
+import org.apache.commons.io.IOUtils
+import org.apache.commons.lang3.SystemUtils
 import pers.zhc.tts.TTS.SpeakPriority
 
+import java.io.{File, FileOutputStream}
 import java.util.concurrent.Executors
 import javax.swing.event.{DocumentEvent, DocumentListener}
-import javax.swing.{JFrame, JTextArea, WindowConstants}
+import javax.swing.{JFrame, JScrollPane, JTextArea, WindowConstants}
 
 object Main {
   def main(args: Array[String]): Unit = {
-    System.load("C:/bczhc/code/tts-typing/jni/build/libjni_lib.dll")
+    if (!SystemUtils.IS_OS_WINDOWS) {
+      System.err.println("Only available on Windows.")
+      System.exit(1)
+    }
+
+    val libFile = extractLib()
+    System.load(libFile.getPath)
 
     val frame = new JFrame()
     frame.setTitle("TTS")
@@ -17,9 +26,10 @@ object Main {
     frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
 
     val ta = new JTextArea()
+    val sp = new JScrollPane(ta)
     ta.setFont(ta.getFont.deriveFont(25F))
     ta.setLineWrap(true)
-    frame.add(ta)
+    frame.add(sp)
 
     val threadPool = Executors.newCachedThreadPool()
 
@@ -56,6 +66,17 @@ object Main {
 
       }
     })
+  }
+
+  private def extractLib(): File = {
+    val tempLibPath = File.createTempFile("tts-typing-", ".dll")
+    val os = new FileOutputStream(tempLibPath)
+    val is = getClass.getClassLoader.getResourceAsStream("libjni_lib.dll")
+    IOUtils.copy(is, os)
+    os.close()
+    is.close()
+    tempLibPath.deleteOnExit()
+    tempLibPath
   }
 }
 

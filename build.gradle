@@ -1,4 +1,5 @@
 plugins {
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
     id 'scala'
 }
 
@@ -10,20 +11,13 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.scala-lang:scala-library:2.13.7'
+    implementation 'org.scala-lang:scala-library:2.13.9'
+    implementation 'org.apache.commons:commons-lang3:3.14.0'
+    implementation 'commons-io:commons-io:2.16.1'
 }
 
 jar {
     manifest {
         attributes "Main-Class": "pers.zhc.tts.Main"
     }
-}
-
-task fatJar(type: Jar) {
-    manifest.from jar.manifest
-    archiveClassifier.set "all"
-    from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-    }
-    with jar
 }
